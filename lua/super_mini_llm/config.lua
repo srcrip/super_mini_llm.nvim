@@ -4,7 +4,7 @@ local M = {}
 -- Default configuration
 M.defaults = {
   provider = "anthropic",
-  model = "claude-sonnet-4-20250514",
+  model = nil, -- nil means use provider's default
   api_key = nil, -- string or function returning string
   system_prompt = nil,
 }

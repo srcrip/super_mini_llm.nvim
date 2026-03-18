@@ -32,9 +32,11 @@ function M._create_commands()
 
     if #args == 0 then
       -- Show all current config
+      local provider = providers.get(config.current.provider)
+      local model_display = config.current.model or (provider and provider.default_model .. " (default)") or "none"
       vim.api.nvim_echo({
         { "provider: ", "Normal" }, { config.current.provider .. "\n", "String" },
-        { "model: ",    "Normal" }, { config.current.model, "String" },
+        { "model: ",    "Normal" }, { model_display, "String" },
       }, false, {})
       return
     end
@@ -44,7 +46,9 @@ function M._create_commands()
 
     if option == "model" then
       if not value then
-        vim.api.nvim_echo({ { "model: ", "Normal" }, { config.current.model, "String" } }, false, {})
+        local provider = providers.get(config.current.provider)
+        local model_display = config.current.model or (provider and provider.default_model .. " (default)") or "none"
+        vim.api.nvim_echo({ { "model: ", "Normal" }, { model_display, "String" } }, false, {})
       else
         config.current.model = value
         vim.api.nvim_echo({ { "model set to: ", "Normal" }, { value, "String" } }, false, {})
@@ -96,11 +100,8 @@ function M._create_commands()
         -- Completing option name
         return { "model", "provider", "list_models" }
       elseif args[2] == "model" then
-        return {
-          "claude-sonnet-4-20250514",
-          "claude-haiku-4-5-20251001",
-          "claude-opus-4-20250514",
-        }
+        -- No hardcoded completions; use :LLMConfig list_models to see available models
+        return {}
       elseif args[2] == "provider" then
         return providers.list()
       end
@@ -167,11 +168,12 @@ function M._handle_llm_command(cmd_opts)
   local mark_id = ui.show_loading(bufnr, end_line - 1)
 
   -- Call the provider
+  local model = config.current.model or provider.default_model
   provider.complete({
     text = text,
     prompt = prompt,
     system_prompt = config.current.system_prompt,
-    model = config.current.model,
+    model = model,
     api_key = api_key,
   }, function(err, result)
     is_processing = false

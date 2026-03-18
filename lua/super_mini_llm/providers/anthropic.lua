@@ -4,7 +4,7 @@ local request = require("super_mini_llm.request")
 local M = {}
 
 M.name = "anthropic"
-M.default_model = "claude-sonnet-4-20250514"
+M.default_model = "claude-sonnet-4-6"
 
 local API_URL = "https://api.anthropic.com/v1/messages"
 local API_VERSION = "2023-06-01"
