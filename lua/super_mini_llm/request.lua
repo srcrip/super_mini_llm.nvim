@@ -1,28 +1,19 @@
 -- Async HTTP request layer using curl
 local M = {}
 
---- Make an async HTTP POST request
----@param url string
----@param headers table<string, string>
----@param body table
----@param callback fun(err: string?, response: table?)
-function M.post(url, headers, body, callback)
-  local json_body = vim.json.encode(body)
+local function make_request(method, url, headers, body, callback)
+  local cmd = { "curl", "-s", "-X", method, url }
 
-  -- Build curl command
-  local cmd = { "curl", "-s", "-X", "POST", url }
-
-  -- Add headers
   for key, value in pairs(headers) do
     table.insert(cmd, "-H")
     table.insert(cmd, key .. ": " .. value)
   end
 
-  -- Add body
-  table.insert(cmd, "-d")
-  table.insert(cmd, json_body)
+  if body then
+    table.insert(cmd, "-d")
+    table.insert(cmd, vim.json.encode(body))
+  end
 
-  -- Use vim.system for async execution (Neovim 0.10+)
   vim.system(cmd, { text = true }, function(result)
     vim.schedule(function()
       if result.code ~= 0 then
@@ -46,4 +37,22 @@ function M.post(url, headers, body, callback)
   end)
 end
 
+--- Make an async HTTP GET request
+---@param url string
+---@param headers table<string, string>
+---@param callback fun(err: string?, response: table?)
+function M.get(url, headers, callback)
+  make_request("GET", url, headers, nil, callback)
+end
+
+--- Make an async HTTP POST request
+---@param url string
+---@param headers table<string, string>
+---@param body table
+---@param callback fun(err: string?, response: table?)
+function M.post(url, headers, body, callback)
+  make_request("POST", url, headers, body, callback)
+end
+
 return M
+

@@ -49,6 +49,29 @@ function M._create_commands()
         config.current.model = value
         vim.api.nvim_echo({ { "model set to: ", "Normal" }, { value, "String" } }, false, {})
       end
+    elseif option == "list_models" then
+      local api_key, key_err = config.get_api_key()
+      if not api_key then
+        ui.show_error(key_err)
+        return
+      end
+      local provider = providers.get(config.current.provider)
+      if not provider or not provider.list_models then
+        ui.show_error("Provider does not support listing models")
+        return
+      end
+      vim.api.nvim_echo({ { "Fetching models...", "Comment" } }, false, {})
+      provider.list_models(api_key, function(err, models)
+        if err then
+          ui.show_error(err)
+          return
+        end
+        local lines = { { "Available models:\n", "Normal" } }
+        for _, model in ipairs(models) do
+          table.insert(lines, { "  " .. model .. "\n", "String" })
+        end
+        vim.api.nvim_echo(lines, true, {})
+      end)
     elseif option == "provider" then
       if not value then
         vim.api.nvim_echo({ { "provider: ", "Normal" }, { config.current.provider, "String" } }, false, {})
@@ -61,7 +84,7 @@ function M._create_commands()
         vim.api.nvim_echo({ { "provider set to: ", "Normal" }, { value, "String" } }, false, {})
       end
     else
-      ui.show_error("Unknown option: " .. option .. ". Available: model, provider")
+      ui.show_error("Unknown option: " .. option .. ". Available: model, provider, list_models")
     end
   end, {
     nargs = "*",
@@ -71,11 +94,11 @@ function M._create_commands()
       -- args[1] is "LLMConfig", args[2] is option, args[3] is value
       if #args == 1 or (#args == 2 and not cmd_line:match("%s$")) then
         -- Completing option name
-        return { "model", "provider" }
+        return { "model", "provider", "list_models" }
       elseif args[2] == "model" then
         return {
           "claude-sonnet-4-20250514",
-          "claude-haiku-4-20250514",
+          "claude-haiku-4-5-20251001",
           "claude-opus-4-20250514",
         }
       elseif args[2] == "provider" then
