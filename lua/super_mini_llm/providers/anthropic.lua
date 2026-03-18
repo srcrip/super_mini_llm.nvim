@@ -5,6 +5,11 @@ local M = {}
 
 M.name = "anthropic"
 M.default_model = "claude-sonnet-4-6"
+M.models = {
+  "claude-sonnet-4-6",
+  "claude-opus-4-6",
+  "claude-haiku-4-5-20251001",
+}
 
 local API_URL = "https://api.anthropic.com/v1/messages"
 local API_VERSION = "2023-06-01"

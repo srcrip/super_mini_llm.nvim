@@ -100,8 +100,8 @@ function M._create_commands()
         -- Completing option name
         return { "model", "provider", "list_models" }
       elseif args[2] == "model" then
-        -- No hardcoded completions; use :LLMConfig list_models to see available models
-        return {}
+        local provider = providers.get(config.current.provider)
+        return provider and provider.models or {}
       elseif args[2] == "provider" then
         return providers.list()
       end
